@@ -1,0 +1,14 @@
+Implementation details:
+
+The Model
+
+This project uses the Kinematic model as described in the lectures which also tracks how errors change over time by including them in the state vector. There are 6 components that describe the state: position x, position y, heading psi, velocity v, crosstrack error cte, heading error epsi. The goal of MPC is to find the optimal values of the actuators 'throttle' and 'steering angle' to be applied to the vehicle to best follow the expected trajectory.
+
+Timestep Length and Elapsed duration
+
+When running MPC without any latency, values of N=10 and dt=0.1 were found to work best. Keeping the value of dt as low as possible makes sure we avoid discretization error. Increasing the value of N will lead to an increased computation time as the number of variables required to be optimized by the optimizer will increase.
+
+However, on introducing a latency of 0.1s in applying the actuators, a dt of 0.1s lead to oscillations. This may be because the actuations get computed every dt seconds, but are getting applied with a delay of 0.1s, not allowing them time to settle in. As suggested on the SDCND discussion forum changing the dt to 0.2 resolves this issue and resulted in the car following the trajectory smoothly.
+
+Polynomial fitting and MPC preprocessing
+

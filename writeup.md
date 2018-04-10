@@ -12,7 +12,7 @@ This project uses the Kinematic model as described in the lectures which also tr
 
 When running MPC without any latency, values of N=10 and dt=0.1 were found to work best. Keeping the value of dt as low as possible makes sure we avoid discretization error. Increasing the value of N will lead to an increased computation time as the number of variables required to be optimized by the optimizer will increase.
 
-However, on introducing a latency of 0.1s in applying the actuators, a dt of 0.1s lead to oscillations. This may be because the actuations get computed every dt seconds, but are getting applied with a delay of 0.1s, not allowing them time to settle in. As suggested on the SDCND discussion forum changing the dt to 0.2 resolves this issue and resulted in the car following the trajectory smoothly.
+However, on introducing a latency of 0.1s in applying the actuators, a dt of 0.1s leads to oscillations. This may be because the actuations get computed every dt=0.1s seconds, but because of the latency of 0.1s the next state that we pass to the solver may not always be the state after the previous set of actuations have been applied. As suggested on the SDCND discussion forum changing the dt to 0.2 resolves this issue and resulted in the car following the trajectory smoothly.
 
 ## Polynomial fitting and MPC preprocessing
 

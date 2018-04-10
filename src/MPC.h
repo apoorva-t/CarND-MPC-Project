@@ -15,6 +15,10 @@ class MPC {
   // Solve the model given an initial state and polynomial coefficients.
   // Return the first actuatotions.
   vector<double> Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
+
+  // delta limit angle in radians
+  static double delta_max;
+  static double ref_v;
 };
 
 #endif /* MPC_H */

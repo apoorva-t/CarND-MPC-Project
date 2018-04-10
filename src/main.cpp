@@ -70,6 +70,8 @@ int main() {
 
   // MPC is initialized here!
   MPC mpc;
+  // set delta limit to 30 degree
+  MPC::delta_max = deg2rad(30);
 
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -90,7 +92,53 @@ int main() {
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
+
           double v = j[1]["speed"];
+          //as suggested on Slack, convert the velocity from mph to m/s
+          v *= 0.44704;
+          double steer_angle = j[1]["steering_angle"];
+          double init_throttle = j[1]["throttle"];
+
+          //Convert waypoints to car's co-ordinate system
+          // So that px = 0, py = 0, psi = 0
+          Eigen::VectorXd wpx(ptsx.size());
+          Eigen::VectorXd wpy(ptsx.size());
+          std::cout << "Psi : " << psi << std::endl;
+
+          for (int i = 0; i < ptsx.size(); i++)
+          {
+        	  double shiftx = ptsx[i] - px;
+        	  double shifty = ptsy[i] - py;
+
+        	  wpx[i] = shiftx * cos(-psi) - shifty * sin(-psi);
+        	  wpy[i] = shiftx * sin(-psi) + shifty * cos(-psi);
+          }
+
+          //fit 3rd order polynomial to waypoints
+          Eigen::VectorXd coeffs = polyfit(wpx, wpy, 3);
+          //Eigen::VectorXd coeffs = polyfit(wpx, wpy, 1);
+
+          //compute initial cte and epsi
+          double cte = coeffs[0];
+          double epsi = - atan(coeffs[1]);
+
+          Eigen::VectorXd state(6);
+          px = 0; py = 0; psi = 0; //after transform to car's co-ordinate system
+          std::cout << "State prev: " << cte << std::endl << epsi << std::endl;
+
+          //incorporate latency into state by passing predicted state at (current+latency) time
+          double latency = 0.1; //convert 100ms latency to seconds
+          const double Lf = 2.67;
+          px += v * cos(psi) * latency;
+          py += v * sin(psi) * latency;
+          psi -=  v/Lf * steer_angle * latency;
+          cte += v * sin(epsi) * latency;
+          std::cout << "v: " << v << " ,sin epsi: " << sin(epsi) << " latency: " << latency << std::endl;
+          epsi -= v/Lf * steer_angle * latency;
+          v += init_throttle * latency;
+          state << px,py,psi,v,cte,epsi;
+
+          auto vars = mpc.Solve(state, coeffs);
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -98,8 +146,11 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+          double steer_value = vars[0];
+          // divide steer value by 30 degree to normalize
+          steer_value /= deg2rad(30);
+
+          double throttle_value = vars[1];
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -113,6 +164,13 @@ int main() {
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
+          for (int i = 2; i < vars.size(); i++)
+          {
+        	  if (i%2 == 0)
+        		  mpc_x_vals.push_back(vars[i]);
+        	  else
+        		  mpc_y_vals.push_back(vars[i]);
+          }
 
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
@@ -123,7 +181,11 @@ int main() {
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
-
+          for (int i = 0; i < ptsx.size(); i++)
+          {
+        	  next_x_vals.push_back(wpx[i]);
+        	  next_y_vals.push_back(wpy[i]);
+          }
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 
@@ -132,7 +194,7 @@ int main() {
           std::cout << msg << std::endl;
           // Latency
           // The purpose is to mimic real driving conditions where
-          // the car does actuate the commands instantly.
+          // the car does not actuate the commands instantly.
           //
           // Feel free to play around with this value but should be to drive
           // around the track with 100ms latency.

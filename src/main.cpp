@@ -103,7 +103,6 @@ int main() {
           // So that px = 0, py = 0, psi = 0
           Eigen::VectorXd wpx(ptsx.size());
           Eigen::VectorXd wpy(ptsx.size());
-          std::cout << "Psi : " << psi << std::endl;
 
           for (int i = 0; i < ptsx.size(); i++)
           {
@@ -124,7 +123,6 @@ int main() {
 
           Eigen::VectorXd state(6);
           px = 0; py = 0; psi = 0; //after transform to car's co-ordinate system
-          std::cout << "State prev: " << cte << std::endl << epsi << std::endl;
 
           //incorporate latency into state by passing predicted state at (current+latency) time
           double latency = 0.1; //convert 100ms latency to seconds
@@ -133,7 +131,7 @@ int main() {
           py += v * sin(psi) * latency;
           psi -=  v/Lf * steer_angle * latency;
           cte += v * sin(epsi) * latency;
-          std::cout << "v: " << v << " ,sin epsi: " << sin(epsi) << " latency: " << latency << std::endl;
+          //std::cout << "v: " << v << " ,sin epsi: " << sin(epsi) << " latency: " << latency << std::endl;
           epsi -= v/Lf * steer_angle * latency;
           v += init_throttle * latency;
           state << px,py,psi,v,cte,epsi;

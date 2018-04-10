@@ -152,8 +152,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   vars[cte_start] = state[4];
   vars[epsi_start] = state[5];
 
-  std::cout << "State : " << state << std::endl;
-
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
   // Set non-acutator lower and upper bounds to min/max limits

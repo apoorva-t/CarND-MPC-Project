@@ -4,7 +4,7 @@
 
 ## The Model
 
-This project uses the Kinematic model as described in the lectures which also tracks how errors change over time by including them in the state vector. There are 6 components that describe the state: position x, position y, heading psi, velocity v, crosstrack error cte, heading error epsi. The goal of MPC is to find the optimal values of the actuators 'throttle' and 'steering angle' to be applied to the vehicle to best follow the expected trajectory.
+This project uses the Kinematic model as described in the lectures which also tracks how errors change over time by including them in the state vector. There are 6 components that describe the state: position x, position y, heading psi, velocity v, crosstrack error cte, heading error epsi. The goal of MPC is to find the optimal values of the actuators 'throttle' and 'steering angle' to be applied to the vehicle to best follow the expected trajectory. The equations for the kinematic model are:
 
 ![alt text](./state_eqs.png)
 
